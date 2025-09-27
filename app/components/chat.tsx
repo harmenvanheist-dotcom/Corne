@@ -64,6 +64,10 @@ const Chat = ({
   const [messages, setMessages] = useState([]);
   const [inputDisabled, setInputDisabled] = useState(false);
   const [threadId, setThreadId] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadedFileId, setUploadedFileId] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // automatically scroll to bottom of chat
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -86,14 +90,56 @@ const Chat = ({
     createThread();
   }, []);
 
-  const sendMessage = async (text) => {
+  // Handle file upload
+  const handleFileUpload = async (file: File) => {
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("purpose", "assistants");
+
+    try {
+      const response = await fetch("/api/assistants/files", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("File upload failed");
+      }
+
+      const data = await response.json();
+      setUploadedFileId(data.fileId);
+      setSelectedFile(file);
+      
+      // Add a message to show file was uploaded
+      appendMessage("user", `📎 Uploaded: ${file.name}`);
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      alert("Failed to upload file. Please try again.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const sendMessage = async (text: string) => {
+    const body: any = { content: text };
+    
+    // If there's an uploaded file, attach it to the message
+    if (uploadedFileId) {
+      body.fileIds = [uploadedFileId];
+      // Clear the uploaded file after sending
+      setUploadedFileId(null);
+      setSelectedFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+
     const response = await fetch(
       `/api/assistants/threads/${threadId}/messages`,
       {
         method: "POST",
-        body: JSON.stringify({
-          content: text,
-        }),
+        body: JSON.stringify(body),
       }
     );
     const stream = AssistantStream.fromReadableStream(response.body);
@@ -245,7 +291,6 @@ const Chat = ({
       })
       return [...prevMessages.slice(0, -1), updatedLastMessage];
     });
-    
   }
 
   return (
@@ -256,6 +301,29 @@ const Chat = ({
         ))}
         <div ref={messagesEndRef} />
       </div>
+      
+      {/* File Upload Section */}
+      <div className={styles.fileUploadSection} style={{ padding: '10px', borderTop: '1px solid #e5e5e5' }}>
+        <input
+          ref={fileInputRef}
+          type="file"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) {
+              handleFileUpload(file);
+            }
+          }}
+          disabled={isUploading || inputDisabled}
+          style={{ marginBottom: '10px' }}
+        />
+        {isUploading && <span>Uploading...</span>}
+        {selectedFile && !isUploading && (
+          <span style={{ color: 'green', marginLeft: '10px' }}>
+            ✓ {selectedFile.name} ready to send with next message
+          </span>
+        )}
+      </div>
+
       <form
         onSubmit={handleSubmit}
         className={`${styles.inputForm} ${styles.clearfix}`}
@@ -270,7 +338,7 @@ const Chat = ({
         <button
           type="submit"
           className={styles.button}
-          disabled={inputDisabled}
+          disabled={inputDisabled || isUploading}
         >
           Send
         </button>
