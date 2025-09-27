@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { openai } from "@/app/openai";
+import { assistantId } from "@/app/assistant-config";
+const openai = new (await import("openai")).default({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 export async function POST(request: NextRequest) {
   const formData = await request.formData();
@@ -10,7 +13,6 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // Upload file to OpenAI
     const openaiFile = await openai.files.create({
       file: file,
       purpose: "assistants"
