@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { assistantId } from "@/app/assistant-config";
-const openai = new (await import("openai")).default({
-  apiKey: process.env.OPENAI_API_KEY,
+import OpenAI from "openai";
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY!,
 });
 
 export async function POST(request: NextRequest) {
