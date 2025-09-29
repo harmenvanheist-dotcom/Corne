@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
+import { assistantId } from "@/app/assistant-config";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
 });
-
-const assistantId = process.env.OPENAI_ASSISTANT_ID!;
 
 export async function POST(request: NextRequest) {
   const formData = await request.formData();
