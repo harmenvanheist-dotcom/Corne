@@ -319,7 +319,7 @@ const Chat = ({
         {isUploading && <span>Uploading...</span>}
         {selectedFile && !isUploading && (
           <span style={{ color: 'green', marginLeft: '10px' }}>
-            ✓ {selectedFile.name} ready to send with next message
+            ✓ {selectedFile.name} Klaar om te versturen.
           </span>
         )}
       </div>
@@ -333,14 +333,14 @@ const Chat = ({
           className={styles.input}
           value={userInput}
           onChange={(e) => setUserInput(e.target.value)}
-          placeholder="Enter your question"
+          placeholder="Stel hier je vraag"
         />
         <button
           type="submit"
           className={styles.button}
           disabled={inputDisabled || isUploading}
         >
-          Send
+          Verstuur
         </button>
       </form>
     </div>
