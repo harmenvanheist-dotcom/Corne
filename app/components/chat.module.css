@@ -1,6 +1,6 @@
 .chatContainer {
   display: flex;
-  flex-direction: column-reverse;
+  flex-direction: column;
   height: 100%;
   width: 100%;
 }
@@ -93,8 +93,4 @@
 .codeMessage span {
   color: #b8b8b8;
   margin-right: 8px;
-}
-
-.fileUploadSection {
-  order: 3;
 }
